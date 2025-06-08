@@ -6,7 +6,7 @@
         public List<Especialidad> Especialidades { get; set; } = especialidades;
         public bool Activo { get; set; } = true;
         public bool Ocupado { get; set; } = false;
-        public Queue<Paciente> Fila { get; set; } = new Queue<Paciente>();
+        public  List<Paciente> Fila { get; set; } = new List<Paciente>();
         public bool TieneEspecialidad(Especialidad especialidad)
         {
             return Especialidades.Contains(especialidad);
