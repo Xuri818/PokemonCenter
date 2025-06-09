@@ -41,7 +41,6 @@ namespace PokemonCenter
             cargarArchivoToolStripMenuItem = new ToolStripMenuItem();
             acercaDeToolStripMenuItem = new ToolStripMenuItem();
             panelRecepcion = new Panel();
-            listaEspera = new ListBox();
             panel1 = new Panel();
             panel2 = new Panel();
             panel3 = new Panel();
@@ -58,7 +57,6 @@ namespace PokemonCenter
             panel14 = new Panel();
             panel15 = new Panel();
             menuStrip1.SuspendLayout();
-            panelRecepcion.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -107,13 +105,14 @@ namespace PokemonCenter
             // agregarPacienteToolStripMenuItem
             // 
             agregarPacienteToolStripMenuItem.Name = "agregarPacienteToolStripMenuItem";
-            agregarPacienteToolStripMenuItem.Size = new Size(164, 22);
+            agregarPacienteToolStripMenuItem.Size = new Size(180, 22);
             agregarPacienteToolStripMenuItem.Text = "Agregar paciente";
+            agregarPacienteToolStripMenuItem.Click += agregarPacienteToolStripMenuItem_Click;
             // 
             // cargarArchivoToolStripMenuItem
             // 
             cargarArchivoToolStripMenuItem.Name = "cargarArchivoToolStripMenuItem";
-            cargarArchivoToolStripMenuItem.Size = new Size(164, 22);
+            cargarArchivoToolStripMenuItem.Size = new Size(180, 22);
             cargarArchivoToolStripMenuItem.Text = "Cargar archivo";
             // 
             // acercaDeToolStripMenuItem
@@ -125,20 +124,10 @@ namespace PokemonCenter
             // panelRecepcion
             // 
             panelRecepcion.BackColor = Color.LightGray;
-            panelRecepcion.Controls.Add(listaEspera);
             panelRecepcion.Location = new Point(12, 594);
             panelRecepcion.Name = "panelRecepcion";
             panelRecepcion.Size = new Size(1284, 94);
             panelRecepcion.TabIndex = 1;
-            // 
-            // listaEspera
-            // 
-            listaEspera.Font = new Font("Arial", 10F);
-            listaEspera.Location = new Point(602, 3);
-            listaEspera.Name = "listaEspera";
-            listaEspera.Size = new Size(679, 84);
-            listaEspera.TabIndex = 0;
-            listaEspera.SelectedIndexChanged += listaEspera_SelectedIndexChanged;
             // 
             // panel1
             // 
@@ -147,7 +136,6 @@ namespace PokemonCenter
             panel1.Name = "panel1";
             panel1.Size = new Size(80, 561);
             panel1.TabIndex = 2;
- 
             // 
             // panel2
             // 
@@ -182,7 +170,6 @@ namespace PokemonCenter
             panel5.Name = "panel5";
             panel5.Size = new Size(80, 561);
             panel5.TabIndex = 5;
- 
             // 
             // panel6
             // 
@@ -191,7 +178,6 @@ namespace PokemonCenter
             panel6.Name = "panel6";
             panel6.Size = new Size(80, 561);
             panel6.TabIndex = 6;
-
             // 
             // panel7
             // 
@@ -200,7 +186,6 @@ namespace PokemonCenter
             panel7.Name = "panel7";
             panel7.Size = new Size(80, 561);
             panel7.TabIndex = 7;
- 
             // 
             // panel8
             // 
@@ -209,7 +194,6 @@ namespace PokemonCenter
             panel8.Name = "panel8";
             panel8.Size = new Size(80, 561);
             panel8.TabIndex = 8;
-      
             // 
             // panel9
             // 
@@ -218,7 +202,6 @@ namespace PokemonCenter
             panel9.Name = "panel9";
             panel9.Size = new Size(80, 561);
             panel9.TabIndex = 9;
-   
             // 
             // panel10
             // 
@@ -227,7 +210,6 @@ namespace PokemonCenter
             panel10.Name = "panel10";
             panel10.Size = new Size(80, 561);
             panel10.TabIndex = 10;
-  
             // 
             // panel11
             // 
@@ -244,7 +226,6 @@ namespace PokemonCenter
             panel12.Name = "panel12";
             panel12.Size = new Size(80, 561);
             panel12.TabIndex = 12;
-
             // 
             // panel13
             // 
@@ -253,7 +234,6 @@ namespace PokemonCenter
             panel13.Name = "panel13";
             panel13.Size = new Size(80, 561);
             panel13.TabIndex = 13;
-
             // 
             // panel14
             // 
@@ -302,7 +282,6 @@ namespace PokemonCenter
             Load += Form1_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            panelRecepcion.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -334,6 +313,5 @@ namespace PokemonCenter
         private ToolStripMenuItem agregarPacienteToolStripMenuItem;
         private ToolStripMenuItem cargarArchivoToolStripMenuItem;
         private ToolStripMenuItem acercaDeToolStripMenuItem;
-        private ListBox listaEspera;
     }
 }

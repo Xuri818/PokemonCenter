@@ -9,6 +9,56 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Models\atlas.json" />
+    <None Remove="Resource\Confuso.png" />
+    <None Remove="Resource\Congelado.png" />
+    <None Remove="Resource\Consultorio.png" />
+    <None Remove="Resource\Dormido.png" />
+    <None Remove="Resource\Envenenado.png" />
+    <None Remove="Resource\FilaGeneral.png" />
+    <None Remove="Resource\Icon.ico" />
+    <None Remove="Resource\Paralizado.png" />
+    <None Remove="Resource\Quemado.png" />
+    <None Remove="Resource\SpritesPokemon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Models\atlas.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Confuso.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Congelado.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Consultorio.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Dormido.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Envenenado.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\FilaGeneral.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Paralizado.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\Quemado.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\SpritesPokemon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
