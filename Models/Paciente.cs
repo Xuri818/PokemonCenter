@@ -1,6 +1,6 @@
 ﻿namespace PokemonCenter.Models
 {
-    internal class Paciente(string nombre, Especialidad especialidadSolicitada, int prioridad, int id)
+    public class Paciente(string nombre, Especialidad especialidadSolicitada, int prioridad, int id)
     {
         public int ID { get; set; } = id;
         public string Nombre { get; set; } = nombre;
@@ -8,3 +8,4 @@
         public int Prioridad { get; set; } = prioridad;
     }
 }
+  

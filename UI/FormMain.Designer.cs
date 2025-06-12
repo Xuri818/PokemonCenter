@@ -41,6 +41,9 @@ namespace PokemonCenter
             cargarArchivoToolStripMenuItem = new ToolStripMenuItem();
             acercaDeToolStripMenuItem = new ToolStripMenuItem();
             panelRecepcion = new Panel();
+            labelTiempo = new Label();
+            buttonFilaConsultorio = new Button();
+            buttonFilaGeneral = new Button();
             panel1 = new Panel();
             panel2 = new Panel();
             panel3 = new Panel();
@@ -57,6 +60,7 @@ namespace PokemonCenter
             panel14 = new Panel();
             panel15 = new Panel();
             menuStrip1.SuspendLayout();
+            panelRecepcion.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -105,14 +109,14 @@ namespace PokemonCenter
             // agregarPacienteToolStripMenuItem
             // 
             agregarPacienteToolStripMenuItem.Name = "agregarPacienteToolStripMenuItem";
-            agregarPacienteToolStripMenuItem.Size = new Size(180, 22);
+            agregarPacienteToolStripMenuItem.Size = new Size(164, 22);
             agregarPacienteToolStripMenuItem.Text = "Agregar paciente";
             agregarPacienteToolStripMenuItem.Click += agregarPacienteToolStripMenuItem_Click;
             // 
             // cargarArchivoToolStripMenuItem
             // 
             cargarArchivoToolStripMenuItem.Name = "cargarArchivoToolStripMenuItem";
-            cargarArchivoToolStripMenuItem.Size = new Size(180, 22);
+            cargarArchivoToolStripMenuItem.Size = new Size(164, 22);
             cargarArchivoToolStripMenuItem.Text = "Cargar archivo";
             // 
             // acercaDeToolStripMenuItem
@@ -124,10 +128,45 @@ namespace PokemonCenter
             // panelRecepcion
             // 
             panelRecepcion.BackColor = Color.LightGray;
+            panelRecepcion.Controls.Add(labelTiempo);
+            panelRecepcion.Controls.Add(buttonFilaConsultorio);
+            panelRecepcion.Controls.Add(buttonFilaGeneral);
             panelRecepcion.Location = new Point(12, 594);
             panelRecepcion.Name = "panelRecepcion";
             panelRecepcion.Size = new Size(1284, 94);
             panelRecepcion.TabIndex = 1;
+            // 
+            // labelTiempo
+            // 
+            labelTiempo.AutoSize = true;
+            labelTiempo.BackColor = Color.Transparent;
+            labelTiempo.Font = new Font("Ravie", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelTiempo.Location = new Point(694, 66);
+            labelTiempo.Name = "labelTiempo";
+            labelTiempo.Size = new Size(74, 21);
+            labelTiempo.TabIndex = 2;
+            labelTiempo.Text = "00 min";
+            labelTiempo.Click += label1_Click;
+            // 
+            // buttonFilaConsultorio
+            // 
+            buttonFilaConsultorio.Location = new Point(144, 39);
+            buttonFilaConsultorio.Name = "buttonFilaConsultorio";
+            buttonFilaConsultorio.Size = new Size(77, 23);
+            buttonFilaConsultorio.TabIndex = 1;
+            buttonFilaConsultorio.Text = "Filas";
+            buttonFilaConsultorio.UseVisualStyleBackColor = true;
+            buttonFilaConsultorio.Click += ButtonFilaConsultorio_Click;
+            // 
+            // buttonFilaGeneral
+            // 
+            buttonFilaGeneral.Location = new Point(144, 66);
+            buttonFilaGeneral.Name = "buttonFilaGeneral";
+            buttonFilaGeneral.Size = new Size(77, 23);
+            buttonFilaGeneral.TabIndex = 0;
+            buttonFilaGeneral.Text = "Fila General";
+            buttonFilaGeneral.UseVisualStyleBackColor = true;
+            buttonFilaGeneral.Click += button1_Click;
             // 
             // panel1
             // 
@@ -136,6 +175,7 @@ namespace PokemonCenter
             panel1.Name = "panel1";
             panel1.Size = new Size(80, 561);
             panel1.TabIndex = 2;
+            panel1.Paint += panel1_Paint_3;
             // 
             // panel2
             // 
@@ -178,6 +218,7 @@ namespace PokemonCenter
             panel6.Name = "panel6";
             panel6.Size = new Size(80, 561);
             panel6.TabIndex = 6;
+            panel6.Paint += panel6_Paint;
             // 
             // panel7
             // 
@@ -282,6 +323,8 @@ namespace PokemonCenter
             Load += Form1_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
+            panelRecepcion.ResumeLayout(false);
+            panelRecepcion.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -313,5 +356,8 @@ namespace PokemonCenter
         private ToolStripMenuItem agregarPacienteToolStripMenuItem;
         private ToolStripMenuItem cargarArchivoToolStripMenuItem;
         private ToolStripMenuItem acercaDeToolStripMenuItem;
+        private Button buttonFilaGeneral;
+        private Button buttonFilaConsultorio;
+        private Label labelTiempo;
     }
 }

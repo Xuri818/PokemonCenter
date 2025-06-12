@@ -1,17 +1,33 @@
 ﻿namespace PokemonCenter.Models
 {
-    internal class Consultorio(int id, List<Especialidad> especialidades)
+    public class Consultorio
     {
-        public int ID { get; set; } = id;
-        public List<Especialidad> Especialidades { get; set; } = especialidades;
+        public static List<Consultorio> Todos { get; } = [];
+
+        public int ID { get; set; }
+        public List<Especialidad> Especialidades { get; set; }
         public bool Activo { get; set; } = true;
         public bool Ocupado { get; set; } = false;
-        public  List<Paciente> Fila { get; set; } = new List<Paciente>();
+        public List<Paciente> Fila { get; set; } = [];
+
+        public Consultorio(int id, List<Especialidad> especialidades)
+        {
+            ID = id;
+            Especialidades = especialidades;
+            Todos.Add(this);
+        }
+
+        public Consultorio(int id) : this(id, [])
+        {
+        }
+
         public bool TieneEspecialidad(Especialidad especialidad)
         {
             return Especialidades.Contains(especialidad);
         }
     }
 }
+
+
 
 

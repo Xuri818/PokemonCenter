@@ -15,8 +15,8 @@
     <None Remove="Resource\Consultorio.png" />
     <None Remove="Resource\Dormido.png" />
     <None Remove="Resource\Envenenado.png" />
+    <None Remove="Resource\filaConsultorio.png" />
     <None Remove="Resource\FilaGeneral.png" />
-    <None Remove="Resource\Icon.ico" />
     <None Remove="Resource\Paralizado.png" />
     <None Remove="Resource\Quemado.png" />
     <None Remove="Resource\SpritesPokemon.png" />
@@ -41,10 +41,10 @@
     <Content Include="Resource\Envenenado.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resource\FilaGeneral.png">
+    <Content Include="Resource\filaConsultorio.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resource\Icon.ico">
+    <Content Include="Resource\FilaGeneral.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Resource\Paralizado.png">
