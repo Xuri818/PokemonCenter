@@ -42,6 +42,7 @@ namespace PokemonCenter
             acercaDeToolStripMenuItem = new ToolStripMenuItem();
             panelRecepcion = new Panel();
             labelTiempo = new Label();
+            labelTiempoAtencion = new Label();
             buttonFilaConsultorio = new Button();
             buttonFilaGeneral = new Button();
             panel1 = new Panel();
@@ -71,7 +72,6 @@ namespace PokemonCenter
             menuStrip1.Size = new Size(1308, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
-            menuStrip1.ItemClicked += menuStrip1_ItemClicked;
             // 
             // archivoToolStripMenuItem
             // 
@@ -79,25 +79,27 @@ namespace PokemonCenter
             archivoToolStripMenuItem.Name = "archivoToolStripMenuItem";
             archivoToolStripMenuItem.Size = new Size(78, 20);
             archivoToolStripMenuItem.Text = "Simulacion";
-            archivoToolStripMenuItem.Click += archivoToolStripMenuItem_Click;
             // 
             // iniciarToolStripMenuItem
             // 
             iniciarToolStripMenuItem.Name = "iniciarToolStripMenuItem";
             iniciarToolStripMenuItem.Size = new Size(119, 22);
             iniciarToolStripMenuItem.Text = "Iniciar";
+            iniciarToolStripMenuItem.Click += IniciarToolStripMenuItem_Click;
             // 
             // pausarToolStripMenuItem
             // 
             pausarToolStripMenuItem.Name = "pausarToolStripMenuItem";
             pausarToolStripMenuItem.Size = new Size(119, 22);
             pausarToolStripMenuItem.Text = "Pausar";
+            pausarToolStripMenuItem.Click += PausarToolStripMenuItem_Click;
             // 
             // reiniciarToolStripMenuItem
             // 
             reiniciarToolStripMenuItem.Name = "reiniciarToolStripMenuItem";
             reiniciarToolStripMenuItem.Size = new Size(119, 22);
             reiniciarToolStripMenuItem.Text = "Reiniciar";
+            reiniciarToolStripMenuItem.Click += ReiniciarToolStripMenuItem_Click;
             // 
             // pacientesToolStripMenuItem
             // 
@@ -129,6 +131,7 @@ namespace PokemonCenter
             // 
             panelRecepcion.BackColor = Color.LightGray;
             panelRecepcion.Controls.Add(labelTiempo);
+            panelRecepcion.Controls.Add(labelTiempoAtencion);
             panelRecepcion.Controls.Add(buttonFilaConsultorio);
             panelRecepcion.Controls.Add(buttonFilaGeneral);
             panelRecepcion.Location = new Point(12, 594);
@@ -140,13 +143,23 @@ namespace PokemonCenter
             // 
             labelTiempo.AutoSize = true;
             labelTiempo.BackColor = Color.Transparent;
-            labelTiempo.Font = new Font("Ravie", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            labelTiempo.Location = new Point(694, 66);
+            labelTiempo.Font = new Font("Arial Narrow", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelTiempo.Location = new Point(921, 66);
             labelTiempo.Name = "labelTiempo";
-            labelTiempo.Size = new Size(74, 21);
-            labelTiempo.TabIndex = 2;
-            labelTiempo.Text = "00 min";
-            labelTiempo.Click += label1_Click;
+            labelTiempo.Size = new Size(90, 20);
+            labelTiempo.TabIndex = 3;
+            labelTiempo.Text = "Tiempo: 0 min";
+            // 
+            // labelTiempoAtencion
+            // 
+            labelTiempoAtencion.AutoSize = true;
+            labelTiempoAtencion.BackColor = Color.Transparent;
+            labelTiempoAtencion.Font = new Font("Arial Narrow", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            labelTiempoAtencion.Location = new Point(1076, 66);
+            labelTiempoAtencion.Name = "labelTiempoAtencion";
+            labelTiempoAtencion.Size = new Size(185, 20);
+            labelTiempoAtencion.TabIndex = 2;
+            labelTiempoAtencion.Text = "Se termina de atender en: 0 min";
             // 
             // buttonFilaConsultorio
             // 
@@ -166,7 +179,7 @@ namespace PokemonCenter
             buttonFilaGeneral.TabIndex = 0;
             buttonFilaGeneral.Text = "Fila General";
             buttonFilaGeneral.UseVisualStyleBackColor = true;
-            buttonFilaGeneral.Click += button1_Click;
+            buttonFilaGeneral.Click += ButtonFilaGeneral_Click;
             // 
             // panel1
             // 
@@ -175,7 +188,6 @@ namespace PokemonCenter
             panel1.Name = "panel1";
             panel1.Size = new Size(80, 561);
             panel1.TabIndex = 2;
-            panel1.Paint += panel1_Paint_3;
             // 
             // panel2
             // 
@@ -184,7 +196,6 @@ namespace PokemonCenter
             panel2.Name = "panel2";
             panel2.Size = new Size(80, 561);
             panel2.TabIndex = 3;
-            panel2.Paint += panel2_Paint;
             // 
             // panel3
             // 
@@ -193,7 +204,6 @@ namespace PokemonCenter
             panel3.Name = "panel3";
             panel3.Size = new Size(80, 561);
             panel3.TabIndex = 3;
-            panel3.Paint += panel3_Paint_1;
             // 
             // panel4
             // 
@@ -218,7 +228,6 @@ namespace PokemonCenter
             panel6.Name = "panel6";
             panel6.Size = new Size(80, 561);
             panel6.TabIndex = 6;
-            panel6.Paint += panel6_Paint;
             // 
             // panel7
             // 
@@ -320,7 +329,7 @@ namespace PokemonCenter
             MaximizeBox = false;
             Name = "FormMain";
             Text = " Pokemon Center";
-            Load += Form1_Load;
+            Load += FormMain_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             panelRecepcion.ResumeLayout(false);
@@ -358,6 +367,7 @@ namespace PokemonCenter
         private ToolStripMenuItem acercaDeToolStripMenuItem;
         private Button buttonFilaGeneral;
         private Button buttonFilaConsultorio;
+        private Label labelTiempoAtencion;
         private Label labelTiempo;
     }
 }

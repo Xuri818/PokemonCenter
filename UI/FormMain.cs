@@ -2,56 +2,45 @@
 using PokemonCenter.UI;
 using System.Drawing.Imaging;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
-
 
 namespace PokemonCenter
 {
     public partial class FormMain : Form
     {
         private Button[] botonesCrearConsultorios;
-        private List<Consultorio> consultorios;
         private Panel[] panelesConsultorios;
+        public static List<Consultorio> consultorios;
 
         private int contadorPacientes = 0;
-        private List<Paciente> pacientesVisuales = new List<Paciente>();
+
         private List<PictureBox> spritesVisuales = new List<PictureBox>();
-        private FilaGeneral filaGeneral = new FilaGeneral();
         private Dictionary<string, Rectangle> atlas = new(); // Cargar desde JSON
         private Image atlasImage; // SpritesPokemon.png
+
+        private System.Windows.Forms.Timer timerSimulacion;
+        private bool simulacionActiva = false;
+        private int minutosTranscurridos = 0;
+        private double minutosRestantesAtencion = 0;
+
+
+
+        private ToolTip toolTipSprites = new ToolTip();
+        private ToolTip tooltipConsultorios = new ToolTip();
 
         public FormMain()
         {
             InitializeComponent();
         }
 
-        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        private void FormMain_Load(object sender, EventArgs e)
         {
+            // Timer
+            timerSimulacion = new System.Windows.Forms.Timer();
+            timerSimulacion.Interval = 1_000;
+            timerSimulacion.Tick += TimerSimulacion_Tick;
 
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private static Bitmap CambiarOpacidad(Bitmap img, float opacidad)
-        {
-            Bitmap bmp = new Bitmap(img.Width, img.Height);
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                ColorMatrix matrix = new ColorMatrix();
-                matrix.Matrix33 = opacidad;
-                ImageAttributes attr = new ImageAttributes();
-                attr.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-                g.DrawImage(img, new Rectangle(0, 0, img.Width, img.Height), 0, 0, img.Width, img.Height, GraphicsUnit.Pixel, attr);
-            }
-            return bmp;
-        }
-
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
             // Cargar atlas JSON y sprite
             string basePath = Application.StartupPath;
 
@@ -69,8 +58,10 @@ namespace PokemonCenter
                 atlas[kvp.Key] = rect;
             }
 
-            // Inicializar lista de consultorios
-            consultorios = new List<Consultorio>(new Consultorio[15]);
+            consultorios = new List<Consultorio>();
+            for (int i = 0; i < 15; i++)
+                consultorios.Add(new Consultorio(i + 1));
+
 
             string pathBase = Path.Combine(Application.StartupPath, "Resource");
 
@@ -89,14 +80,15 @@ namespace PokemonCenter
 
             for (int i = 0; i < 15; i++)
             {
-                int index = i; // importante para el closure
+                int index = i;
 
                 Button btn = new Button
                 {
                     Text = "Crear Consultorio",
                     Dock = DockStyle.Fill,
                     Tag = index,
-                    Font = new Font("Segoe UI", 8F, FontStyle.Bold)
+                    Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                    BackColor = Color.White
                 };
 
                 btn.Click += (s, e) =>
@@ -116,49 +108,15 @@ namespace PokemonCenter
 
                 botonesCrearConsultorios[i] = btn;
                 panelesConsultorios[i].Controls.Add(btn);
+                tooltipConsultorios = new ToolTip
+                {
+                    AutoPopDelay = 10000,
+                    InitialDelay = 200,
+                    ReshowDelay = 200,
+                    ShowAlways = true
+                };
+
             }
-        }
-
-
-
-
-        private void panel1_Paint_1(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel1_Paint_2(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel4_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel3_Paint_1(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void archivoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void listaEspera_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-        private void panel10_Paint(object sender, PaintEventArgs e)
-        {
-
         }
 
         private void MostrarConsultorio(Panel panel, Consultorio consultorio)
@@ -186,12 +144,10 @@ namespace PokemonCenter
                 FlatStyle = FlatStyle.Popup,
                 BackColor = Color.FromArgb(180, Color.White)
             };
-            btnAbrirCerrar.Click += (s, e) =>
-            {
-                consultorio.Activo = !consultorio.Activo;
-                btnAbrirCerrar.Text = consultorio.Activo ? "Cerrar" : "Abrir";
-                MostrarConsultorio(panel, consultorio); // Recarga visual
-            };
+            // Evento click referenciado con ID
+            int id = consultorio.ID;
+            btnAbrirCerrar.Click += (s, e) => CambiarEstadoConsultorio(panel, id);
+
 
             // Botón eliminar
             Button btnEliminar = new()
@@ -202,10 +158,10 @@ namespace PokemonCenter
                 FlatStyle = FlatStyle.Popup,
                 BackColor = Color.FromArgb(180, Color.White)
             };
+
             btnEliminar.Click += (s, e) =>
             {
-                panel.Controls.Clear();
-                panel.Controls.Add(botonesCrearConsultorios[consultorio.ID - 1]);
+                EliminarConsultorio(panel, id);
             };
 
             // Colores y nombres de especialidades
@@ -274,6 +230,7 @@ namespace PokemonCenter
                 Height = 20,
                 BackColor = Color.Transparent
             };
+            consultorio.LabelEstado = estado;
 
             // Fondo si está cerrado
             panel.BackColor = consultorio.Activo ? SystemColors.Control : Color.LightGray;
@@ -290,9 +247,10 @@ namespace PokemonCenter
                 btnAbrirCerrar,
                 titulo
             ]);
+            // Asignar tooltip al panel completo
+            tooltipConsultorios.SetToolTip(panel, GenerarTextoTooltip(consultorio));
+
         }
-
-
 
         private void agregarPacienteToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -308,24 +266,197 @@ namespace PokemonCenter
                 contadorPacientes++;
 
                 FilaGeneral.AgregarPaciente(nuevoPaciente);
-                pacientesVisuales.Add(nuevoPaciente);
 
-                // Obtener sprite
-                string key = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(nombre.ToLower());
-                Rectangle area = atlas.ContainsKey(key)
-                    ? atlas[key]
-                    : atlas["Ditto"];
+                // Redibujar fila general con sprites organizados
+                DibujarSpritesFilaGeneral();
+            }
+        }
+
+        private async void ButtonFilaConsultorio_Click(object sender, EventArgs e)
+        {
+            buttonFilaConsultorio.Enabled = false;
+
+            var mejor = await Task.Run(() =>
+            {
+                return AlgoritmoGenetico.MezclarFilasConsultorios();
+            });
+            // Aplicar el mejor individuo al sistema
+            CargarIndividuo(mejor);
+
+            buttonFilaConsultorio.Enabled = true;
+            labelTiempoAtencion.Text = $"Se termina de atender en: {mejor.Tiempo} min";
+            minutosRestantesAtencion = mejor.Tiempo;
+        }
+
+
+        private async void ButtonFilaGeneral_Click(object sender, EventArgs e)
+        {
+            buttonFilaGeneral.Enabled = false;
+
+            var mejor = await Task.Run(() =>
+            {
+                return AlgoritmoGenetico.IngresarFilaGeneral();
+            });
+
+            FilaGeneral.PacientesEnEspera.Clear();
+            CargarIndividuo(mejor);
+
+            buttonFilaGeneral.Enabled = true;
+            labelTiempoAtencion.Text = $"Se termina de atender en: {mejor.Tiempo} min";
+            minutosRestantesAtencion = mejor.Tiempo;
+        }
+
+
+        private void CargarIndividuo(Individuo nuevoIndividuo)
+        {
+            // Paso 1: LIMPIAR visualmente todas las filas de consultorios
+            foreach (var panel in panelesConsultorios)
+            {
+                if (panel == null) continue;
+
+                foreach (Control ctrl in panel.Controls.OfType<PictureBox>().Where(p => string.IsNullOrEmpty(p.Name)).ToList())
+                {
+                    panel.Controls.Remove(ctrl);
+                    ctrl.Dispose();
+                }
+            }
+
+            // Paso 2: Limpiar sprites y fila general visual
+            foreach (Control ctrl in panelRecepcion.Controls.OfType<PictureBox>().Where(p => string.IsNullOrEmpty(p.Name)).ToList())
+            {
+                panelRecepcion.Controls.Remove(ctrl);
+                ctrl.Dispose();
+            }
+
+            spritesVisuales.Clear();
+
+            for (int i = 0; i < consultorios.Count; i++)
+            {
+                if (i >= nuevoIndividuo.Consultorios.Count || nuevoIndividuo.Consultorios[i] == null)
+                {
+                    consultorios[i] = null;
+                    continue;
+                }
+
+                var nuevo = nuevoIndividuo.Consultorios[i];
+                var actual = consultorios[i];
+
+                if (actual == null)
+                {
+                    consultorios[i] = new Consultorio(nuevo.ID, new List<Especialidad>(nuevo.Especialidades), false)
+                    {
+                        Activo = nuevo.Activo,
+                        Ocupado = nuevo.Ocupado,
+                        Fila = new List<Paciente>(nuevo.Fila)
+                    };
+                }
+                else
+                {
+                    actual.Activo = nuevo.Activo;
+                    actual.Ocupado = nuevo.Ocupado;
+                    actual.Fila = new List<Paciente>(nuevo.Fila);
+                    actual.Especialidades = new List<Especialidad>(nuevo.Especialidades);
+                }
+            }
+
+
+
+            // Paso 4: Cargar pacientes no atendidos
+            FilaGeneral.PacientesEnEspera.AddRange(nuevoIndividuo.PacientesNoAtendidos);
+
+            // Paso 5: Redibujar visualmente
+            ActualizarVisualizacionFilas();
+        }
+
+
+        private void CambiarEstadoConsultorio(Panel panel, int consultorioId)
+        {
+            var consultorio = consultorios[consultorioId - 1];
+            consultorio.Activo = !consultorio.Activo;
+            // Redibujar el consultorio con su estado actualizado
+            MostrarConsultorio(panel, consultorio);
+
+            DibujarSpritesConsultorios();
+        }
+
+        private void EliminarConsultorio(Panel panel, int consultorioId)
+        {
+            // 1. Obtener el consultorio real
+            var consultorio = consultorios[consultorioId - 1];
+            if (consultorio == null) return;
+
+            // 2. Mover sus pacientes al final de la fila general
+            if (consultorio.Fila.Any())
+            {
+                FilaGeneral.PacientesEnEspera.AddRange(consultorio.Fila);
+                consultorio.Fila.Clear();
+            }
+
+            // 3. Eliminar el consultorio lógicamente
+            consultorios[consultorioId - 1] = null;
+
+            // 4. Limpiar visualmente el panel
+            panel.Controls.Clear();
+
+            // 5. Volver a mostrar el botón "Crear Consultorio"
+            if (consultorioId - 1 < botonesCrearConsultorios.Length)
+            {
+                panel.Controls.Add(botonesCrearConsultorios[consultorioId - 1]);
+            }
+
+            // 6. Actualizar visualmente fila general
+            ActualizarVisualizacionFilas();
+
+            // 7. Confirmación
+            MessageBox.Show($"Consultorio {consultorioId} eliminado. Sus pacientes han sido redirigidos a la fila general.");
+        }
+        private void ActualizarEstadoVisualConsultorio(Consultorio consultorio)
+        {
+            if (consultorio.LabelEstado == null)
+            {
+                MessageBox.Show($"Consultorio {consultorio.ID} no tiene LabelEstado");
+                return;
+            }
+
+            consultorio.LabelEstado.Text = consultorio.Ocupado ? "Ocupado" : "Disponible";
+            consultorio.LabelEstado.ForeColor = consultorio.Ocupado ? Color.Red : Color.Green;
+            tooltipConsultorios.SetToolTip(panelesConsultorios[consultorio.ID - 1], GenerarTextoTooltip(consultorio));
+        }
+
+
+
+
+        private void ActualizarVisualizacionFilas()
+        {
+            DibujarSpritesFilaGeneral();
+            DibujarSpritesConsultorios();
+        }
+
+        private void DibujarSpritesFilaGeneral()
+        {
+            // LIMPIAR solo los PictureBox sin nombre (sprites) de la fila general
+            foreach (Control ctrl in panelRecepcion.Controls.OfType<PictureBox>().Where(p => string.IsNullOrEmpty(p.Name)).ToList())
+            {
+                panelRecepcion.Controls.Remove(ctrl);
+                ctrl.Dispose();
+            }
+
+            spritesVisuales.RemoveAll(p => panelRecepcion.Controls.Contains(p));
+
+            int margin = 5;
+            int offsetX = 300;
+            int offsetY = (panelRecepcion.Height - 32) / 2 + 10;
+
+            foreach (var paciente in FilaGeneral.PacientesEnEspera)
+            {
+                string key = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(paciente.Nombre.ToLower());
+                Rectangle area = atlas.ContainsKey(key) ? atlas[key] : atlas["Ditto"];
 
                 Bitmap recorte = new Bitmap(32, 32, PixelFormat.Format32bppArgb);
                 using (Graphics g = Graphics.FromImage(recorte))
                 {
                     g.DrawImage(atlasImage, new Rectangle(0, 0, 32, 32), area, GraphicsUnit.Pixel);
                 }
-
-                // Posición en panelRecepcion
-                int margin = 5;
-                int offsetX = 300 + (spritesVisuales.Count * (32 + margin));
-                int offsetY = (panelRecepcion.Height - 32) / 2 + 10;
 
                 PictureBox pb = new PictureBox
                 {
@@ -336,249 +467,242 @@ namespace PokemonCenter
                     Image = recorte
                 };
 
-                spritesVisuales.Add(pb);
+                // Agregar tooltip con información del paciente
+                toolTipSprites.SetToolTip(pb,
+                    $"Nombre: {paciente.Nombre}\n" +
+                    $"Especialidad: {paciente.EspecialidadSolicitada.Nombre}\n" +
+                    $"ID: {paciente.ID}\n" +
+                    $"Prioridad: {paciente.Prioridad}\n" +
+                    $"Mutado: {(paciente.Mutado ? "Sí" : "No")}"
+                );
                 panelRecepcion.Controls.Add(pb);
+                spritesVisuales.Add(pb);
+
+                offsetX += 32 + margin;
             }
         }
 
-        private void panel1_Paint_3(object sender, PaintEventArgs e)
+        private void DibujarSpritesConsultorios()
         {
-
-        }
-
-        private void panel6_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            try
+            for (int i = 0; i < consultorios.Count; i++)
             {
-                // 1. Consultorios activos
-                var consultoriosAbiertos = Consultorio.Todos.Where(c => c.Activo).ToList();
+                var consultorio = consultorios[i];
+                if (consultorio == null) continue;
 
-                // 2. Obtener pacientes de fila general
-                var pacientes = new List<Paciente>(FilaGeneral.PacientesEnEspera);
+                var panel = panelesConsultorios[i];
 
-                // 3. Agregar pacientes en fila de cada consultorio
-                foreach (var c in consultoriosAbiertos)
+                // Eliminar solo los sprites (PictureBox sin nombre)
+                foreach (Control ctrl in panel.Controls.OfType<PictureBox>().Where(p => string.IsNullOrEmpty(p.Name)).ToList())
                 {
-                    pacientes.AddRange(c.Fila);
-                    c.Fila.Clear(); // Vaciar las filas para re-optimizar
+                    panel.Controls.Remove(ctrl);
+                    ctrl.Dispose();
                 }
 
-                // 4. Validar si hay suficientes pacientes
-                if (pacientes.Count <= 1)
+                int offsetYSprite = 185;
+                int margen = 5;
+
+                foreach (var paciente in consultorio.Fila)
                 {
-                    DebugLog("Muy pocos pacientes para aplicar el algoritmo genético.");
-                    return;
+                    string key = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(paciente.Nombre.ToLower());
+                    Rectangle area = atlas.ContainsKey(key) ? atlas[key] : atlas["Ditto"];
+
+                    Bitmap recorte = new Bitmap(32, 32, PixelFormat.Format32bppArgb);
+                    using (Graphics g = Graphics.FromImage(recorte))
+                    {
+                        g.DrawImage(atlasImage, new Rectangle(0, 0, 32, 32), area, GraphicsUnit.Pixel);
+                    }
+
+                    PictureBox pb = new PictureBox
+                    {
+                        BackColor = Color.Transparent,
+                        Size = new Size(32, 32),
+                        Location = new Point((panel.Width - 32) / 2, offsetYSprite),
+                        SizeMode = PictureBoxSizeMode.StretchImage,
+                        Image = recorte
+                    };
+
+                    toolTipSprites.SetToolTip(pb,
+                        $"Nombre: {paciente.Nombre}\n" +
+                        $"Especialidad: {paciente.EspecialidadSolicitada.Nombre}\n" +
+                        $"ID: {paciente.ID}\n" +
+                        $"Prioridad: {paciente.Prioridad}\n" +
+                        $"Mutado: {(paciente.Mutado ? "Sí" : "No")}"
+                    );
+
+                    panel.Controls.Add(pb);
+                    pb.BringToFront();
+                    spritesVisuales.Add(pb);
+
+                    offsetYSprite += 32 + margen;
                 }
-
-                // 5. Ejecutar algoritmo genético
-                var mejor = AlgoritmoGenetico.EjecutarAlgoritmoGenetico(consultoriosAbiertos, pacientes, incluirFilaGeneral: true);
-                DebugIndividuo(mejor);
-                // 6. Actualizar filas de consultorios con las nuevas filas del mejor individuo
-                for (int i = 0; i < consultoriosAbiertos.Count; i++)
-                {
-                    consultoriosAbiertos[i].Fila = mejor.Consultorios[i].Fila;
-                }
-
-                // 7. Vaciar y actualizar fila general con los no asignados
-                FilaGeneral.PacientesEnEspera.Clear();
-                FilaGeneral.PacientesEnEspera.AddRange(mejor.PacientesNoAtendidos);
-
-                // 8. Refrescar interfaz
-                labelTiempo.Text = $"Tiempo estimado: {mejor.Fitness} minutos";
-                ActualizarVistasPacientes();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error durante la ejecución: " + ex.Message);
             }
         }
 
-        private void label1_Click(object sender, EventArgs e)
+
+        private void TimerSimulacion_Tick(object sender, EventArgs e)
         {
+            minutosTranscurridos++;
+            labelTiempo.Text = $"Tiempo: {minutosTranscurridos} min";
 
-        }
-
-        private void ButtonFilaConsultorio_Click(object sender, EventArgs e)
-        {
-            // 1. Obtener todos los pacientes de consultorios abiertos
-            List<Paciente> pacientes = new();
-            List<Consultorio> consultoriosAbiertos = new();
-
-            foreach (var consultorio in Consultorio.Todos)
+            if (minutosRestantesAtencion > 0)
             {
-                if (consultorio.Activo)
-                {
-                    pacientes.AddRange(consultorio.Fila);
-                    consultoriosAbiertos.Add(consultorio);
-                }
-
-                // Vaciar todas las filas (también de cerrados)
-                consultorio.Fila.Clear();
+                minutosRestantesAtencion--;
+                labelTiempoAtencion.Text = $"Se termina de atender en: {minutosRestantesAtencion} min";
+            }
+            else
+            {
+                labelTiempoAtencion.Text = "Todos atendidos";
             }
 
-            // 2. Ejecutar algoritmo genético solo con consultorios abiertos
-            DebugLog("Iniciando ejecución del algoritmo genético");
-            var mejorIndividuo = AlgoritmoGenetico.EjecutarAlgoritmoGenetico(consultoriosAbiertos, pacientes, false);
-            DebugLog($"Algoritmo finalizado. Fitness: {mejorIndividuo.Fitness}");
-            // 3. Actualizar las filas visuales de cada consultorio
-            for (int i = 0; i < consultoriosAbiertos.Count; i++)
-            {
-                Consultorio c = consultoriosAbiertos[i];
-                MostrarConsultorio(panelesConsultorios[c.ID - 1], c);
-            }
-
-            // 4. Mostrar fitness como tiempo en el label
-            labelTiempo.Text = $"Tiempo estimado: {mejorIndividuo.Fitness} minutos";
-
-            // Actualizar visualizacion de los sprites
-            ActualizarVistasPacientes();
-        }
-
-
-        private void ActualizarVistasPacientes()
-        {
-            // Limpia sprites de fila general
-            foreach (var sprite in spritesVisuales)
-                panelRecepcion.Controls.Remove(sprite);
-            spritesVisuales.Clear();
-
-            // Limpia sprites de cada consultorio
-            foreach (var panel in panelesConsultorios)
-            {
-                var spritesEnConsultorio = panel.Controls
-                    .Cast<Control>()
-                    .Where(c => c is PictureBox pic && pic.Tag?.ToString() == "PacienteSprite")
-                    .ToList();
-
-                foreach (var control in spritesEnConsultorio)
-                    panel.Controls.Remove(control);
-            }
-
-            // Muestra sprites en fila general
-            int offsetX = 300;
-            int offsetY = (panelRecepcion.Height - 32) / 2 + 10;
-            int marginX = 5;
-
+            // Aumentar prioridad a pacientes en fila general
             foreach (var paciente in FilaGeneral.PacientesEnEspera)
             {
-                PictureBox pb = CrearSpritePaciente(paciente);
-                pb.Location = new Point(offsetX, offsetY);
-                pb.Tag = "PacienteSprite";
-                panelRecepcion.Controls.Add(pb);
-                spritesVisuales.Add(pb);
-
-                offsetX += 32 + marginX;
+                paciente.Prioridad++;
             }
 
-            // Muestra sprites en consultorios abiertos
-            foreach (var consultorio in Consultorio.Todos)
+            // Aumentar prioridad a pacientes en las filas de los consultorios
+            foreach (var consultorio in consultorios)
             {
-                if (!consultorio.Activo)
-                    continue;
-
-                Panel panel = panelesConsultorios[consultorio.ID - 1];
-
-                int startY = 110;
-                int centerX = (panel.Width - 32) / 2;
+                if (consultorio == null || !consultorio.Activo) continue;
 
                 foreach (var paciente in consultorio.Fila)
                 {
-                    PictureBox pb = CrearSpritePaciente(paciente);
-                    pb.Location = new Point(centerX, startY);
-                    pb.Tag = "PacienteSprite";
-                    panel.Controls.Add(pb);
-                    startY += 32 + 4;
+                    paciente.Prioridad++;
                 }
             }
-        }
 
-
-        private PictureBox CrearSpritePaciente(Paciente paciente)
-        {
-            string key = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(paciente.Nombre.ToLower());
-
-            Rectangle area = atlas.ContainsKey(key) ? atlas[key] : atlas["Ditto"];
-            Bitmap recorte = new(32, 32, PixelFormat.Format32bppArgb);
-            using (Graphics g = Graphics.FromImage(recorte))
-                g.DrawImage(atlasImage, new Rectangle(0, 0, 32, 32), area, GraphicsUnit.Pixel);
-
-            return new PictureBox
+            // Procesar atención en cada consultorio
+            foreach (var consultorio in consultorios)
             {
-                BackColor = Color.Transparent,
-                Size = new Size(32, 32),
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                Image = recorte
-            };
-        }
+                if (consultorio == null || !consultorio.Activo) continue;
 
-        private void DebugLog(string mensaje)
-        {
-            Console.WriteLine($"[DEBUG] {mensaje}");
-            // También puedes mostrarlo en pantalla si lo deseas
-            MessageBox.Show(mensaje, "DEBUG", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        public static void DebugIndividuo(Individuo ind)
-        {
-            Console.WriteLine("----- Debug del Individuo -----");
-
-            HashSet<int> pacientesGlobal = new();
-            bool duplicados = false;
-
-            for (int i = 0; i < ind.Consultorios.Count; i++)
-            {
-                var consultorio = ind.Consultorios[i];
-                Console.WriteLine($"Consultorio {consultorio.ID}:");
-
-                HashSet<int> idsLocales = new();
-
-                foreach (var paciente in consultorio.Fila)
+                if (consultorio.Ocupado && consultorio.TiempoRestanteAtencion > 0)
                 {
-                    Console.WriteLine($"  Paciente ID: {paciente.ID}, Nombre: {paciente.Nombre}");
-
-                    // Verificación local (duplicado en la misma fila)
-                    if (!idsLocales.Add(paciente.ID))
-                    {
-                        Console.WriteLine($"    ❌ Duplicado en misma fila del consultorio {consultorio.ID}: ID {paciente.ID}");
-                        duplicados = true;
-                    }
-
-                    // Verificación global (duplicado en más de un consultorio)
-                    if (!pacientesGlobal.Add(paciente.ID))
-                    {
-                        Console.WriteLine($"    ❌ Duplicado global en otro consultorio: ID {paciente.ID}");
-                        duplicados = true;
-                    }
+                    consultorio.TiempoRestanteAtencion--;
+                    ActualizarTooltipConsultorio(consultorio);
                 }
-            }
 
-            Console.WriteLine($"Pacientes no asignados (fila general): {ind.PacientesNoAtendidos.Count}");
-            foreach (var paciente in ind.PacientesNoAtendidos)
-            {
-                Console.WriteLine($"  [No asignado] ID: {paciente.ID}, Nombre: {paciente.Nombre}");
-
-                if (!pacientesGlobal.Add(paciente.ID))
+                if (!consultorio.Ocupado && consultorio.Fila.Any())
                 {
-                    Console.WriteLine($"    ❌ Duplicado global en fila general: ID {paciente.ID}");
-                    duplicados = true;
+                    var paciente = consultorio.Fila.First();
+                    consultorio.Fila.RemoveAt(0);
+
+                    consultorio.Ocupado = true;
+                    consultorio.TiempoRestanteAtencion = paciente.EspecialidadSolicitada.TiempoAtencion;
+
+                    this.Invoke(() => ActualizarEstadoVisualConsultorio(consultorio));
+
+                    int duracionMs = paciente.EspecialidadSolicitada.TiempoAtencion * 1_000;
+
+                    // Simular tiempo de atención
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(duracionMs);
+
+                        // Finaliza la atención
+                        this.Invoke(() =>
+                        {
+                            consultorio.Ocupado = false;
+                            consultorio.TiempoRestanteAtencion = 0;
+                            ActualizarEstadoVisualConsultorio(consultorio);
+                            ActualizarTooltipConsultorio(consultorio);
+                        });
+                        consultorio.TiempoRestanteAtencion = 0;
+                    });
                 }
             }
-
-            if (!duplicados)
-                Console.WriteLine("✅ No se encontraron pacientes duplicados.");
-            else
-                Console.WriteLine("⚠️ Se detectaron pacientes duplicados.");
-
-            Console.WriteLine("--------------------------------");
+            // Actualizar UI visualmente
+            ActualizarVisualizacionFilas();
         }
 
+        private void IniciarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!simulacionActiva)
+            {
+                timerSimulacion.Start();
+                simulacionActiva = true;
+            }
+        }
+
+        private void PausarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (simulacionActiva)
+            {
+                timerSimulacion.Stop();
+                simulacionActiva = false;
+            }
+        }
+
+        private void ReiniciarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            timerSimulacion.Stop();
+            simulacionActiva = false;
+            minutosTranscurridos = 0;
+
+            // Limpiar filas y consultorios
+            FilaGeneral.PacientesEnEspera.Clear();
+            foreach (var consultorio in consultorios)
+            {
+                if (consultorio != null)
+                {
+                    consultorio.Fila.Clear();
+                    consultorio.Ocupado = false;
+                }
+            }
+
+            ActualizarVisualizacionFilas();
+        }
+
+        // Metodos Auxiliares
+        private static Bitmap CambiarOpacidad(Bitmap img, float opacidad)
+        {
+            Bitmap bmp = new Bitmap(img.Width, img.Height);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                ColorMatrix matrix = new ColorMatrix();
+                matrix.Matrix33 = opacidad;
+                ImageAttributes attr = new ImageAttributes();
+                attr.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                g.DrawImage(img, new Rectangle(0, 0, img.Width, img.Height), 0, 0, img.Width, img.Height, GraphicsUnit.Pixel, attr);
+            }
+            return bmp;
+        }
+
+        private string GenerarTextoTooltip(Consultorio consultorio)
+        {
+            if (consultorio == null) return "Consultorio no asignado";
+
+            string estado = consultorio.Activo ? "Abierto" : "Cerrado";
+            string ocupado = consultorio.Ocupado ? "Ocupado" : "Disponible";
+
+            string especialidades = consultorio.Especialidades.Any()
+                ? string.Join(", ", consultorio.Especialidades.Select(e => e.Nombre))
+                : "Ninguna";
+
+            string fila = consultorio.Fila.Any()
+                ? string.Join("\n  - ", consultorio.Fila.Select(p => $"{p.Nombre} (Prioridad {p.Prioridad})"))
+                : "Vacía";
+
+            string tiempo = consultorio.Ocupado
+                ? $"{consultorio.TiempoRestanteAtencion} min restantes"
+                : "—";
+
+            return $"Consultorio {consultorio.ID}\n" +
+                   $"Estado: {estado}\n" +
+                   $"Ocupación: {ocupado}\n" +
+                   $"Tiempo actual: {tiempo}\n" +
+                   $"Especialidades: {especialidades}\n" +
+                   $"Fila:\n  - {fila}";
+        }
+
+        private void ActualizarTooltipConsultorio(Consultorio consultorio)
+        {
+            if (consultorio == null || consultorio.ID < 1 || consultorio.ID > panelesConsultorios.Length) return;
+            var panel = panelesConsultorios[consultorio.ID - 1];
+            tooltipConsultorios.SetToolTip(panel, GenerarTextoTooltip(consultorio));
+        }
 
     }
 
-
 }
+

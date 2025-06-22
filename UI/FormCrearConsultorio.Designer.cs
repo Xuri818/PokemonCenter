@@ -46,7 +46,6 @@
             chkDormido.TabIndex = 0;
             chkDormido.Text = "Transtornos del Sueño (Dormido)";
             chkDormido.UseVisualStyleBackColor = true;
-            chkDormido.CheckedChanged += chkDormido_CheckedChanged;
             // 
             // chkEnvenenado
             // 
@@ -77,7 +76,6 @@
             chkQuemado.TabIndex = 3;
             chkQuemado.Text = "Unidad de Quemaduras (Quemado)";
             chkQuemado.UseVisualStyleBackColor = true;
-            chkQuemado.CheckedChanged += checkBox1_CheckedChanged;
             // 
             // chkCongelado
             // 
@@ -107,7 +105,7 @@
             btnAceptar.TabIndex = 6;
             btnAceptar.Text = "Aceptar";
             btnAceptar.UseVisualStyleBackColor = true;
-            btnAceptar.Click += button1_Click;
+            btnAceptar.Click += btnAceptar_Click;
             // 
             // FormCrearConsultorio
             // 
@@ -124,7 +122,6 @@
             MaximizeBox = false;
             Name = "FormCrearConsultorio";
             Text = "Crear Consultorio";
-            Load += FormCrearConsultorio_Load;
             ResumeLayout(false);
             PerformLayout();
         }

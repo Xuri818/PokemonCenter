@@ -41,25 +41,5 @@ namespace PokemonCenter.UI
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            btnAceptar.Click += btnAceptar_Click;
-        }
-
-        private void FormCrearConsultorio_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void chkDormido_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }
