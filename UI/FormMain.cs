@@ -293,18 +293,30 @@ namespace PokemonCenter
         {
             buttonFilaGeneral.Enabled = false;
 
-            var mejor = await Task.Run(() =>
+            var resultado = await Task.Run(() =>
             {
                 return AlgoritmoGenetico.IngresarFilaGeneral();
             });
 
-            FilaGeneral.PacientesEnEspera.Clear();
-            CargarIndividuo(mejor);
+            var mejor = resultado.individuo;
+            var huboCambio = resultado.huboCambio;
+
+            if (huboCambio)
+            {
+                FilaGeneral.PacientesEnEspera.Clear();
+                CargarIndividuo(mejor);
+                minutosRestantesAtencion = mejor.Tiempo;
+                labelTiempoAtencion.Text = $"Se termina de atender en: {mejor.Tiempo} min";
+            }
+            else
+            {
+                MessageBox.Show("No se realizaron asignaciones desde la Fila General.", "Sin cambios",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
 
             buttonFilaGeneral.Enabled = true;
-            labelTiempoAtencion.Text = $"Se termina de atender en: {mejor.Tiempo} min";
-            minutosRestantesAtencion = mejor.Tiempo;
         }
+
 
 
         private void CargarIndividuo(Individuo nuevoIndividuo)

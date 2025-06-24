@@ -22,37 +22,29 @@ namespace PokemonCenter.Models
         }
 
         // Distribuye pacientes de la fila general a los consultorios
-        public static Individuo IngresarFilaGeneral(int tamPoblacion = 10)
+        public static (Individuo individuo, bool huboCambio) IngresarFilaGeneral(int tamPoblacion = 10)
         {
             Random rnd = new();
             List<Individuo> poblacion = [];
 
             var baseIndividuo = CrearIndividuoActual();
 
+            bool huboCambioGlobal = false; // flag
+
             for (int i = 0; i < tamPoblacion; i++)
             {
                 var consultoriosClonados = new List<Consultorio>();
-
                 foreach (var c in baseIndividuo.Consultorios)
                 {
-                    if (c == null)
-                    {
-                        consultoriosClonados.Add(null);
-                    }
+                    if (c == null) consultoriosClonados.Add(null);
                     else
                     {
-                        // Crea una nueva instancia del consultorio con los mismos valores
                         var nuevoConsultorio = new Consultorio(
-                            c.ID,                        
-                            new List<Especialidad>(c.Especialidades),
-                            false                              
-                        );
-
+                            c.ID, new List<Especialidad>(c.Especialidades), false);
                         nuevoConsultorio.Fila = new List<Paciente>(c.Fila);
-                        nuevoConsultorio.Activo = c.Activo;              
-                        nuevoConsultorio.Ocupado = c.Ocupado;               
-                        nuevoConsultorio.TiempoRestanteAtencion = c.TiempoRestanteAtencion; 
-
+                        nuevoConsultorio.Activo = c.Activo;
+                        nuevoConsultorio.Ocupado = c.Ocupado;
+                        nuevoConsultorio.TiempoRestanteAtencion = c.TiempoRestanteAtencion;
                         consultoriosClonados.Add(nuevoConsultorio);
                     }
                 }
@@ -63,33 +55,22 @@ namespace PokemonCenter.Models
                 {
                     if (!paciente.Mutado && rnd.NextDouble() < TasaMutacion)
                         paciente.Mutado = true;
-                    var compatibles = new List<Consultorio>();
 
-                    foreach (var c in consultoriosClonados)
-                    {
-                        // Verifica que el consultorio no sea nulo
-                        if (c == null)
-                            continue;
-
-                        // Verifica que el consultorio esté activo
-                        if (!c.Activo)
-                            continue;
-
-                        // Verifica que la lista de especialidades no sea nula ni vacía
-                        if (c.Especialidades == null || c.Especialidades.Count == 0)
-                            continue;
-
-                        // Si el paciente está mutado o el consultorio tiene la especialidad requerida
-                        if (paciente.Mutado || c.TieneEspecialidad(paciente.EspecialidadSolicitada))
-                        {
-                            compatibles.Add(c);
-                        }
-                    }
+                    var compatibles = consultoriosClonados
+                        .Where(c => c != null && c.Activo &&
+                                    c.Especialidades != null &&
+                                    c.Especialidades.Count > 0 &&
+                                    (paciente.Mutado || c.TieneEspecialidad(paciente.EspecialidadSolicitada)))
+                        .ToList();
 
                     if (compatibles.Count == 0)
                         noAtendidos.Add(paciente);
                     else
-                        compatibles[rnd.Next(compatibles.Count)].Fila.Add(paciente);
+                    {
+                        var elegido = compatibles[rnd.Next(compatibles.Count)];
+                        elegido.Fila.Add(paciente);
+                        huboCambioGlobal = true;
+                    }
                 }
 
                 var individuo = new Individuo(consultoriosClonados, noAtendidos, 0);
@@ -98,8 +79,7 @@ namespace PokemonCenter.Models
             }
 
             QuickSortIndividuos(poblacion, 0, poblacion.Count - 1);
-            return poblacion[0];
-
+            return (poblacion[0], huboCambioGlobal);
         }
 
         // Reorganiza pacientes que ya están en consultorios
