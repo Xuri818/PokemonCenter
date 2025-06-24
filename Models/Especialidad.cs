@@ -12,13 +12,20 @@ namespace PokemonCenter.Models
     {
         public string Nombre { get; set; } // Nombre de la especialidad
         public int TiempoAtencion { get; set; } // Tiempo en minutos para atender
-        public static List<Especialidad> Todas { get; } = []; // Lista global de todas las especialidades
+        public static List<Especialidad> Todas { get; } = new()
+    {
+        new Especialidad("dormido", 30),
+        new Especialidad("envenenado", 25),
+        new Especialidad("paralizado", 20),
+        new Especialidad("quemado", 35),
+        new Especialidad("congelado", 20),
+        new Especialidad("confundido", 40),
+    };
 
-        public Especialidad(string nombre, int tiempoAtencion)
+public Especialidad(string nombre, int tiempoAtencion)
         {
             Nombre = nombre;
             TiempoAtencion = tiempoAtencion;
-            Todas.Add(this);
         }
     }
 }

@@ -25,6 +25,8 @@ namespace PokemonCenter.UI
 
         private void btnAceptar_Click(object sender, EventArgs e)
         {
+            EspecialidadesSeleccionadas.Clear();
+
             if (chkDormido.Checked)
                 EspecialidadesSeleccionadas.Add(new Especialidad("Dormido", 30));
             if (chkEnvenenado.Checked)
@@ -38,8 +40,27 @@ namespace PokemonCenter.UI
             if (chkConfundido.Checked)
                 EspecialidadesSeleccionadas.Add(new Especialidad("Confundido", 40));
 
+            if (EspecialidadesSeleccionadas.Count == 0)
+            {
+                MessageBox.Show("Debe seleccionar al menos una especialidad para crear el consultorio.",
+                                "Advertencia",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                return;
+            }
+
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void FormCrearConsultorio_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chkParalizado_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

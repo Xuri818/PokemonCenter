@@ -66,6 +66,7 @@
             chkParalizado.TabIndex = 2;
             chkParalizado.Text = "Fisioterapeuta (Paralizado)";
             chkParalizado.UseVisualStyleBackColor = true;
+            chkParalizado.CheckedChanged += chkParalizado_CheckedChanged;
             // 
             // chkQuemado
             // 
@@ -122,6 +123,7 @@
             MaximizeBox = false;
             Name = "FormCrearConsultorio";
             Text = "Crear Consultorio";
+            Load += FormCrearConsultorio_Load;
             ResumeLayout(false);
             PerformLayout();
         }

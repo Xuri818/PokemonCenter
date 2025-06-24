@@ -381,34 +381,37 @@ namespace PokemonCenter
 
         private void EliminarConsultorio(Panel panel, int consultorioId)
         {
-            // 1. Obtener el consultorio real
+            // Obtiene el consultorio real
             var consultorio = consultorios[consultorioId - 1];
             if (consultorio == null) return;
 
-            // 2. Mover sus pacientes al final de la fila general
+            // Mueve sus pacientes al final de la fila general
             if (consultorio.Fila.Any())
             {
                 FilaGeneral.PacientesEnEspera.AddRange(consultorio.Fila);
                 consultorio.Fila.Clear();
             }
 
-            // 3. Eliminar el consultorio lógicamente
+            // Elimina el consultorio lógicamente
             consultorios[consultorioId - 1] = null;
 
-            // 4. Limpiar visualmente el panel
+            // Limpia visualmente el panel
             panel.Controls.Clear();
 
-            // 5. Volver a mostrar el botón "Crear Consultorio"
+            // Vuelve a mostrar el botón "Crear Consultorio"
             if (consultorioId - 1 < botonesCrearConsultorios.Length)
             {
                 panel.Controls.Add(botonesCrearConsultorios[consultorioId - 1]);
             }
 
-            // 6. Actualizar visualmente fila general
+            // Actualiza visualmente fila general
             ActualizarVisualizacionFilas();
 
-            // 7. Confirmación
             MessageBox.Show($"Consultorio {consultorioId} eliminado. Sus pacientes han sido redirigidos a la fila general.");
+
+            var baseIndividuo = AlgoritmoGenetico.CrearIndividuoActual();
+            minutosRestantesAtencion = baseIndividuo.Tiempo;
+    
         }
         private void ActualizarEstadoVisualConsultorio(Consultorio consultorio)
         {
@@ -635,23 +638,43 @@ namespace PokemonCenter
 
         private void ReiniciarToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            // Detener el tiempo
             timerSimulacion.Stop();
             simulacionActiva = false;
             minutosTranscurridos = 0;
+            minutosRestantesAtencion = 0;
 
-            // Limpiar filas y consultorios
+            // Limpiar pacientes
             FilaGeneral.PacientesEnEspera.Clear();
-            foreach (var consultorio in consultorios)
+            spritesVisuales.Clear();
+            contadorPacientes = 0;
+
+            // Eliminar consultorios visual y lógicamente
+            for (int i = 0; i < consultorios.Count; i++)
             {
-                if (consultorio != null)
+                var consultorio = consultorios[i];
+                if (consultorio != null && consultorio.Activo)
                 {
                     consultorio.Fila.Clear();
                     consultorio.Ocupado = false;
+                    consultorio.Activo = false;
+                    consultorios[i] = new Consultorio(i + 1); // reemplazar por uno vacío
+
+                    var panel = panelesConsultorios[i];
+                    panel.Controls.Clear();
+                    panel.BackColor = SystemColors.Control;
+
+                    // Volver a poner el botón de "Crear Consultorio"
+                    panel.Controls.Add(botonesCrearConsultorios[i]);
                 }
             }
 
+            // Redibujar UI
             ActualizarVisualizacionFilas();
+            labelTiempo.Text = "Tiempo: 0 min";
+            labelTiempoAtencion.Text = "Todos atendidos";
         }
+
 
         // Metodos Auxiliares
         private static Bitmap CambiarOpacidad(Bitmap img, float opacidad)
@@ -701,6 +724,54 @@ namespace PokemonCenter
             var panel = panelesConsultorios[consultorio.ID - 1];
             tooltipConsultorios.SetToolTip(panel, GenerarTextoTooltip(consultorio));
         }
+
+        private void CargarArchivoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Archivos CSV o TXT|*.csv;*.txt";
+            openFileDialog.Title = "Seleccionar archivo de pacientes";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string ruta = openFileDialog.FileName;
+                string[] lineas = File.ReadAllLines(ruta);
+                int creados = 0;
+
+                foreach (string linea in lineas)
+                {
+                    if (string.IsNullOrWhiteSpace(linea)) continue;
+
+                    var partes = linea.Split(',');
+
+                    if (partes.Length < 2) continue;
+
+                    string nombre = partes[0].Trim();
+                    string nombreEspecialidad = partes[1].Trim().ToLower();
+
+                    Especialidad esp = Especialidad.Todas
+                        .FirstOrDefault(e => e.Nombre.Equals(nombreEspecialidad, StringComparison.OrdinalIgnoreCase));
+
+                    if (esp == null)
+                    {
+                        MessageBox.Show($"No se cargo el paciente {nombre}, con especialidad {esp} ", "Carga exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        continue;
+                    }
+
+                    int id = contadorPacientes + 1;
+                    int prioridad = 0;
+
+                    var nuevoPaciente = new Paciente(nombre, esp, prioridad, id);
+                    contadorPacientes++;
+
+                    FilaGeneral.AgregarPaciente(nuevoPaciente);
+                    creados++;
+                }
+
+                DibujarSpritesFilaGeneral();
+                MessageBox.Show($"Se cargaron {creados} pacientes correctamente desde el archivo.", "Carga exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
 
     }
 

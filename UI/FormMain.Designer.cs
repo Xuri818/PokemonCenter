@@ -111,15 +111,16 @@ namespace PokemonCenter
             // agregarPacienteToolStripMenuItem
             // 
             agregarPacienteToolStripMenuItem.Name = "agregarPacienteToolStripMenuItem";
-            agregarPacienteToolStripMenuItem.Size = new Size(164, 22);
+            agregarPacienteToolStripMenuItem.Size = new Size(180, 22);
             agregarPacienteToolStripMenuItem.Text = "Agregar paciente";
             agregarPacienteToolStripMenuItem.Click += agregarPacienteToolStripMenuItem_Click;
             // 
             // cargarArchivoToolStripMenuItem
             // 
             cargarArchivoToolStripMenuItem.Name = "cargarArchivoToolStripMenuItem";
-            cargarArchivoToolStripMenuItem.Size = new Size(164, 22);
+            cargarArchivoToolStripMenuItem.Size = new Size(180, 22);
             cargarArchivoToolStripMenuItem.Text = "Cargar archivo";
+            cargarArchivoToolStripMenuItem.Click += CargarArchivoToolStripMenuItem_Click;
             // 
             // acercaDeToolStripMenuItem
             // 

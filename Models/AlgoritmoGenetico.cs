@@ -11,7 +11,7 @@ namespace PokemonCenter.Models
     public class AlgoritmoGenetico
     {
         public List<Individuo> Poblacion { get; set; } = []; // Lista de individuos generados
-        public static double TasaMutacion { get; set; } = 0.01; // Probabilidad de mutación
+        public static double TasaMutacion { get; set; } = 0.0000001; // Probabilidad de mutación
 
         // Crea un individuo con el estado actual
         public static Individuo CrearIndividuoActual()
@@ -118,7 +118,7 @@ namespace PokemonCenter.Models
                 }
                 else
                 {
-                    // Crear un nuevo consultorio con los datos clonados del original
+                    // Crea un nuevo consultorio con los datos clonados del original
                     var nuevoConsultorio = new Consultorio(
                         c.ID,
                         new List<Especialidad>(c.Especialidades),
